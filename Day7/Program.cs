@@ -7,40 +7,80 @@ using System.Threading.Tasks;
 
 namespace Day7
 {
-	class Program
-	{
-		static void Main(string[] args)
-		{
-			 List<Tuple<char, char>> entries = new List<Tuple<char, char>>();
-			 
+    class Program
+    {
+        public static List<Worker> workers = new List<Worker>();
 
-			using (StreamReader sr = new StreamReader("input.txt"))
-			{
-				string line = "";
-				while ((line = sr.ReadLine()) != null)
-				{
-					entries.Add(new Tuple<char, char>(line.Split(' ')[1].SingleOrDefault(), line.Split(' ')[7].SingleOrDefault()));
-				}
-			}
+        static void Main(string[] args)
+        {
+            List<Tuple<char, char>> entries = new List<Tuple<char, char>>();
 
-			string Part1Result = GetPartOneString(entries);
-			Console.WriteLine(Part1Result);
-			Console.ReadLine();
-		}
 
-		class Worker
-		{
-			public char currentChar { get { return currentChar; } set { currentChar = value; setTimeForThisChar(value); } }
-			public int timeForChar;
+            using (StreamReader sr = new StreamReader("input.txt"))
+            {
+                string line = "";
+                while ((line = sr.ReadLine()) != null)
+                {
+                    // same lists for 2 tasks
+                    entries.Add(new Tuple<char, char>(line.Split(' ')[1].SingleOrDefault(), line.Split(' ')[7].SingleOrDefault()));
+                    StackClass.initialEntries.Add(new Tuple<char, char>(line.Split(' ')[1].SingleOrDefault(), line.Split(' ')[7].SingleOrDefault()));
+                }
+            }
 
-			private void setTimeForThisChar(char value)
-			{
-				this.timeForChar = (int)value - 4;
-			}
+            // Part 2
+            StackClass.updateCharsInStack();
+            for (int x = 0; x < 5; x++)
+            {
+                Worker worker = new Worker();
+                StackClass.tickEvent += new triggerHandler(() => worker.tickEventHappened());
+                workers.Add(worker);
+            }
 
-		}
+            int i = 0;
+            while (StackClass.initialEntries.Count > 0 || StackClass.charsInStack.Count > 0 || !AreAllWorkersFinished())
+            {
 
-		private static string GetPartOneString(List<Tuple<char, char>> entries)
+                StackClass.trigger();
+                Console.WriteLine("{0} [{1}]", i, getCurrentWorkersChars());
+                i++;
+
+            }
+            Console.WriteLine("Part 2 time: " + (StackClass.time - 1) + " " + (i - 2));
+
+            // Part 1
+            Console.WriteLine("Part 1 result:");
+            string Part1Result = GetPartOneString(entries);
+            Console.WriteLine(Part1Result);
+
+
+            Console.ReadLine();
+        }
+
+
+        static bool AreAllWorkersFinished()
+        {
+            foreach (Worker w in workers)
+            {
+                if (w.CurrentChar != ' ') return false;
+            }
+            return true;
+        }
+
+        static string getCurrentWorkersChars()
+        {
+            string result = "";
+            foreach (Worker w in workers)
+            {
+                result += w.CurrentChar + " ";
+            }
+
+            return result;
+        }
+
+
+
+        // task 1 methods
+        private static string GetPartOneString(List<Tuple<char, char>> entries)
 		{
 			int counter = 0;
 			char next = ' ';
